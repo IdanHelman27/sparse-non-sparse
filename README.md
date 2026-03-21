@@ -1,6 +1,7 @@
 # Spiked Covariance Model Simulations
 
 This repository contains Python scripts for simulating and visualizing phenomena associated with the spiked covariance model from Random Matrix Theory (RMT). These simulations explore how signals can be detected in high-dimensional, noisy data.
+It compares the theoretical limits of standard Principal Component Analysis (PCA) against the recovery capabilities of Sparse PCA.
 
 ## Scripts
 
@@ -11,6 +12,12 @@ This repository contains Python scripts for simulating and visualizing phenomena
 - **`fast_eigenvector_simulation.py`**: A high-performance version of the eigenvector alignment simulation. This script is optimized for very large `p` using:
     1.  The "dual covariance" method to avoid forming large `p x p` matrices.
     2.  The Numba JIT compiler for significant speed improvements.
+
+- **`sparse_pca.py`**: Implements Sparse PCA based on the Johnstone & Lu (2009) algorithm, which performs subset selection based on coordinate variance followed by reduced PCA and hard thresholding.
+
+- **`simulation_comparison.py`**: A direct comparison between Standard PCA and Sparse PCA. It generates a sparse spiked signal, runs both algorithms, and plots the recovered eigenvectors to visually demonstrate how Sparse PCA succeeds in the `p >> n` regime where Standard PCA fails.
+
+- **`top_k_variance_experiment.py`**: An empirical experiment isolating the subset selection step of Sparse PCA. It verifies whether the `k` coordinates with the highest variance successfully identify the true non-zero components of a sparse signal across varying sample sizes.
 
 ## Setup and Installation
 
