@@ -5,7 +5,7 @@ def _hard_threshold(data, threshold):
     """Apply hard thresholding to the data."""
     return data * (np.abs(data) >= threshold)
 
-def sparse_pca_johnstone_lu(X, alpha=2.0):
+def sparse_pca_johnstone_lu(X, alpha=2.0, num_components=1):
     """
     Performs sparse PCA based on the Johnstone & Lu (2009) paper,
     assuming the standard basis is appropriate (no wavelet transform).
@@ -15,11 +15,13 @@ def sparse_pca_johnstone_lu(X, alpha=2.0):
                         and n is samples.
         alpha (float): A tuning parameter that controls the strictness of the
                        variance threshold. Lower values are less strict.
+        num_components (int): The number of top principal components to return.
 
     Returns:
         tuple: (v_hat_sparse, k)
-            - v_hat_sparse (np.ndarray): The estimated sparse eigenvector (p, 1).
+            - v_hat_sparse (np.ndarray): The estimated sparse eigenvector(s) shape (p, num_components).
             - k (int): The number of components selected.
+            - lambda_hat (float or np.ndarray): The estimated eigenvalue(s) of the selected components.
     """
     p, n = X.shape
 
@@ -59,26 +61,42 @@ def sparse_pca_johnstone_lu(X, alpha=2.0):
     cov_reduced = (1 / n) * (reduced_dataset @ reduced_dataset.T)
     
     # Find the leading eigenvector of this smaller covariance matrix
-    _, p_tilde_full = eigh(cov_reduced)
-    p_tilde = p_tilde_full[:, -1] # This is a k-dimensional vector
+    eigenvalues, p_tilde_full = eigh(cov_reduced)
 
     # --- Step 3: Reconstruction & Thresholding ---
     
-    # Apply an optional hard thresholding step to the k-dim eigenvector
-    # The paper suggests a threshold based on the noise level.
-    # A common choice is the universal threshold.
     noise_std_dev_in_pc = np.sqrt(sigma_hat_sq / n) # Heuristic for noise in PCs
     universal_threshold = noise_std_dev_in_pc * np.sqrt(2 * np.log(k))
     
-    p_tilde_thresholded = _hard_threshold(p_tilde, universal_threshold)
+    if num_components == 1:
+        p_tilde = p_tilde_full[:, -1] # This is a k-dimensional vector
+        lambda_hat = eigenvalues[-1]
 
-    # Reconstruct the full p-dimensional eigenvector
-    v_hat_sparse = np.zeros((p, 1))
-    v_hat_sparse[top_k_indices] = p_tilde_thresholded.reshape(-1, 1)
-    
-    # Normalize the final vector
-    norm = np.linalg.norm(v_hat_sparse)
-    if norm > 0:
-        v_hat_sparse = v_hat_sparse / norm
+        p_tilde_thresholded = _hard_threshold(p_tilde, universal_threshold)
 
-    return v_hat_sparse, k
+        # Reconstruct the full p-dimensional eigenvector
+        v_hat_sparse = np.zeros((p, 1))
+        v_hat_sparse[top_k_indices] = p_tilde_thresholded.reshape(-1, 1)
+        
+        # Normalize the final vector
+        norm = np.linalg.norm(v_hat_sparse)
+        if norm > 0:
+            v_hat_sparse = v_hat_sparse / norm
+
+        return v_hat_sparse, k, lambda_hat
+    else:
+        actual_num_components = min(num_components, k)
+        top_eigenvalues = eigenvalues[-actual_num_components:][::-1]
+        top_p_tilde = p_tilde_full[:, -actual_num_components:][:, ::-1]
+        
+        V_hat_sparse = np.zeros((p, num_components))
+        for i in range(actual_num_components):
+            p_tilde_thresholded = _hard_threshold(top_p_tilde[:, i], universal_threshold)
+            v_hat = np.zeros((p, 1))
+            v_hat[top_k_indices] = p_tilde_thresholded.reshape(-1, 1)
+            norm = np.linalg.norm(v_hat)
+            if norm > 0:
+                v_hat = v_hat / norm
+            V_hat_sparse[:, i:i+1] = v_hat
+            
+        return V_hat_sparse, k, top_eigenvalues

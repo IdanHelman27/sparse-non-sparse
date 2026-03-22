@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
     # --- 3. Sparse PCA (Johnstone & Lu) ---
     print("3. Running Sparse PCA...")
-    v_hat_sparse, k_selected = sparse_pca_johnstone_lu(X)
+    v_hat_sparse, k_selected, _ = sparse_pca_johnstone_lu(X)
     # Align for correct comparison
     v_hat_sparse = align_vectors(v_true, v_hat_sparse)
     cos_sq_sparse = (v_true.T @ v_hat_sparse)[0, 0]**2
