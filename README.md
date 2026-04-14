@@ -19,6 +19,8 @@ It compares the theoretical limits of standard Principal Component Analysis (PCA
 
 - **`top_k_variance_experiment.py`**: An empirical experiment isolating the subset selection step of Sparse PCA. It verifies whether the `k` coordinates with the highest variance successfully identify the true non-zero components of a sparse signal across varying sample sizes.
 
+- **`deflation_sparse_experiment.py`**: Tests a deflation strategy for mixed dense+sparse spikes. It compares direct Sparse PCA against a two-step pipeline: (1) estimate top dense direction with dual PCA, (2) deflate it from the data, then run Sparse PCA to recover the sparse component.
+
 ## Setup and Installation
 
 To run these simulations, you'll need Python 3 and the packages listed in `requirements.txt`.
@@ -60,5 +62,45 @@ This simulation is optimized for speed and shows the phase transition for eigenv
 ```bash
 python fast_eigenvector_simulation.py
 ```
+
+### Deflation + Sparse Recovery Experiment
+This experiment is designed for the mixed model with a dense top spike and a sparse second spike. It checks whether deflating the top PCA direction improves sparse recovery when `lambda_1` is large.
+```bash
+python deflation_sparse_experiment.py
+```
+
+You can also run a faster preview sweep:
+```bash
+python deflation_sparse_experiment.py --p 3000 --n 200 --num-lam1 8 --num-trials 5
+```
+
+To run without opening plots (table output only):
+```bash
+python deflation_sparse_experiment.py --no-plot
+```
+
+#### Parameters (`deflation_sparse_experiment.py`)
+
+- `--p` (default: `10000`): Number of features (ambient dimension).
+- `--n` (default: `200`): Number of samples.
+- `--sigma` (default: `1.0`): Noise standard deviation in the isotropic noise term.
+- `--lam2` (default: `5.0`): Strength of the sparse spike (second population component).
+- `--sparsity-frac` (default: `0.001`): Fraction of non-zero coordinates in the true sparse eigenvector.
+- `--lam1-min` (default: `10.0`): Minimum dense spike strength used in the sweep.
+- `--lam1-max` (default: `800.0`): Maximum dense spike strength used in the sweep.
+- `--num-lam1` (default: `12`): Number of `lambda_1` values between `lam1-min` and `lam1-max`.
+- `--num-trials` (default: `10`): Monte-Carlo repetitions per `lambda_1` value (higher = smoother, slower).
+- `--seed` (default: `42`): Random seed for reproducibility.
+- `--no-plot` (flag): Skip Matplotlib figures and print only the summary table.
+
+#### What the experiment reports
+
+For each `lambda_1`, it prints:
+- `direct_u`: Alignment of direct Sparse PCA estimate with the true sparse vector.
+- `deflated_u`: Alignment after PCA deflation + Sparse PCA (your proposed method).
+- `direct_v`: Dense-vector leakage of direct Sparse PCA.
+- `deflated_v`: Dense-vector leakage after deflation.
+
+All alignments are squared cosine similarities in `[0, 1]` (higher means stronger alignment).
 
 The scripts will run the simulation and display a Matplotlib plot of the results.

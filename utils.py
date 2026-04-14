@@ -95,7 +95,7 @@ def generate_mixed_spiked_data(p, n, sigma, lam1, lam2, sparsity_fraction=0.1):
     # --- 2. Define the dense Gaussian vector 'v' ---
     v = np.random.randn(p, 1)
     # Make v orthogonal to u using Gram-Schmidt
-    v = v - (u.T @ v)[0, 0] * u
+    # v = v - (u.T @ v)[0, 0] * u
     v = v / np.linalg.norm(v)
 
     # --- 3. Generate the data matrix X ---
