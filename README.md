@@ -69,6 +69,16 @@ This experiment is designed for the mixed model with a dense top spike and a spa
 python deflation_sparse_experiment.py
 ```
 
+To run the new `lambda_2` sweep experiment (different line per `lambda_2`):
+```bash
+python deflation_sparse_experiment.py --experiment lam2-sweep --lam2-values 2 5 10 20
+```
+
+To run the top-eigenvector leakage experiment (alignment of `v_hat_top` with `u_true`):
+```bash
+python deflation_sparse_experiment.py --experiment top-u-alignment --lam2-values 2 5 10 20
+```
+
 You can also run a faster preview sweep:
 ```bash
 python deflation_sparse_experiment.py --p 3000 --n 200 --num-lam1 8 --num-trials 5
@@ -81,10 +91,12 @@ python deflation_sparse_experiment.py --no-plot
 
 #### Parameters (`deflation_sparse_experiment.py`)
 
+- `--experiment` (default: `original`): Choose `original`, `lam2-sweep`, or `top-u-alignment`.
 - `--p` (default: `10000`): Number of features (ambient dimension).
 - `--n` (default: `200`): Number of samples.
 - `--sigma` (default: `1.0`): Noise standard deviation in the isotropic noise term.
 - `--lam2` (default: `5.0`): Strength of the sparse spike (second population component).
+- `--lam2-values` (default: `2 5 10 20`): List of sparse spike strengths used in `lam2-sweep`.
 - `--sparsity-frac` (default: `0.001`): Fraction of non-zero coordinates in the true sparse eigenvector.
 - `--lam1-min` (default: `10.0`): Minimum dense spike strength used in the sweep.
 - `--lam1-max` (default: `800.0`): Maximum dense spike strength used in the sweep.
