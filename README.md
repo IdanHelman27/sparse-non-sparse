@@ -23,6 +23,12 @@ It compares the theoretical limits of standard Principal Component Analysis (PCA
 
 - **`mixed_spiked_simulation.py`**: Simulates the mixed two-spike model (dense first component + sparse second component) and visualizes how PCA and Sparse PCA behave as spike strengths vary.
 
+- **`noise_median_eigenvalue_experiment.py`**: Generates mixed sparse+dense spiked data, computes sample eigenvalues, and compares two noise estimators: raw median-eigenvalue and \((n/p)\)-scaled median-eigenvalue.
+
+- **`top2_eigenvalue_mp_experiment.py`**: Estimates the top-2 population eigenvalues using MP/BBP inverse-spike formulas with known noise level `sigma`.
+
+- **`sparse_dense_sparse_pipeline_experiment.py`**: Tests a 5-step pipeline: Sparse PCA on `X` -> peel sparse estimate -> PCA on peeled data -> peel dense estimate from original `X` -> Sparse PCA again.
+
 ## Setup and Installation
 
 To run these simulations, you'll need Python 3 and the packages listed in `requirements.txt`.
@@ -81,6 +87,11 @@ To run the top-eigenvector leakage experiment (alignment of `v_hat_top` with `u_
 python deflation_sparse_experiment.py --experiment top-u-alignment --lam2-values 2 5 10 20
 ```
 
+To compare standard top-PCA against a dense-regularized top-direction estimator:
+```bash
+python deflation_sparse_experiment.py --experiment top-u-alignment --top-estimator both --dense-tau 20 --lam2-values 2 5 10 20
+```
+
 You can also run a faster preview sweep:
 ```bash
 python deflation_sparse_experiment.py --p 3000 --n 200 --num-lam1 8 --num-trials 5
@@ -89,6 +100,36 @@ python deflation_sparse_experiment.py --p 3000 --n 200 --num-lam1 8 --num-trials
 To run without opening plots (table output only):
 ```bash
 python deflation_sparse_experiment.py --no-plot
+```
+
+### Noise Estimation from Median Eigenvalue
+This experiment sweeps true `sigma` values, generates mixed sparse+dense data, and compares:
+- raw estimator: `sigma_hat = sqrt(median(eigenvalues))`
+- scaled estimator: `sigma_hat = sqrt((n/p) * median(eigenvalues))`
+```bash
+python noise_median_eigenvalue_experiment.py --sigma-values 0.5 1.0 1.5 2.0
+```
+
+To run without opening plots:
+```bash
+python noise_median_eigenvalue_experiment.py --no-plot
+```
+
+### Top-2 Eigenvalue Estimation (MP Inversion)
+This experiment estimates only the top-2 population eigenvalues (not eigenvectors) using the MP edge and inverse-spike formula.
+```bash
+python top2_eigenvalue_mp_experiment.py --sigma 1.0 --lam1 20 --lam2 5
+```
+
+### Sparse -> Dense -> Sparse Pipeline Experiment
+This experiment runs the exact 5-step peeling pipeline and reports alignment quality at each key stage.
+```bash
+python sparse_dense_sparse_pipeline_experiment.py --lam2 5 --num-trials 10
+```
+
+To run without opening plots:
+```bash
+python sparse_dense_sparse_pipeline_experiment.py --no-plot
 ```
 
 #### Parameters (`deflation_sparse_experiment.py`)
@@ -104,6 +145,10 @@ python deflation_sparse_experiment.py --no-plot
 - `--lam1-max` (default: `800.0`): Maximum dense spike strength used in the sweep.
 - `--num-lam1` (default: `12`): Number of `lambda_1` values between `lam1-min` and `lam1-max`.
 - `--num-trials` (default: `10`): Monte-Carlo repetitions per `lambda_1` value (higher = smoother, slower).
+- `--top-estimator` (default: `pca`): For `top-u-alignment`, choose `pca`, `dense-regularized`, or `both`.
+- `--dense-tau` (default: `20.0`): Anti-sparsity strength for dense-regularized top-direction estimation.
+- `--dense-max-iter` (default: `80`): Iteration limit for dense-regularized fixed-point updates.
+- `--dense-tol` (default: `1e-7`): Convergence tolerance for dense-regularized fixed-point updates.
 - `--seed` (default: `42`): Random seed for reproducibility.
 - `--no-plot` (flag): Skip Matplotlib figures and print only the summary table.
 
