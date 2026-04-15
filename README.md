@@ -21,6 +21,8 @@ It compares the theoretical limits of standard Principal Component Analysis (PCA
 
 - **`deflation_sparse_experiment.py`**: Tests a deflation strategy for mixed dense+sparse spikes. It compares direct Sparse PCA against a two-step pipeline: (1) estimate top dense direction with dual PCA, (2) deflate it from the data, then run Sparse PCA to recover the sparse component.
 
+- **`mixed_spiked_simulation.py`**: Simulates the mixed two-spike model (dense first component + sparse second component) and visualizes how PCA and Sparse PCA behave as spike strengths vary.
+
 ## Setup and Installation
 
 To run these simulations, you'll need Python 3 and the packages listed in `requirements.txt`.
@@ -69,7 +71,7 @@ This experiment is designed for the mixed model with a dense top spike and a spa
 python deflation_sparse_experiment.py
 ```
 
-To run the new `lambda_2` sweep experiment (different line per `lambda_2`):
+To run the `lambda_2` sweep experiment (different line per `lambda_2`, with 95% CI shaded bands around each mean curve):
 ```bash
 python deflation_sparse_experiment.py --experiment lam2-sweep --lam2-values 2 5 10 20
 ```
@@ -114,5 +116,7 @@ For each `lambda_1`, it prints:
 - `deflated_v`: Dense-vector leakage after deflation.
 
 All alignments are squared cosine similarities in `[0, 1]` (higher means stronger alignment).
+
+For `--experiment lam2-sweep`, the summary table now reports `mean +/- 95% CI half-width` for each `(\lambda_2, \lambda_1)` pair, and the plot shows matching 95% CI shaded bands.
 
 The scripts will run the simulation and display a Matplotlib plot of the results.
