@@ -29,6 +29,10 @@ It compares the theoretical limits of standard Principal Component Analysis (PCA
 
 - **`sparse_dense_sparse_pipeline_experiment.py`**: Tests a 5-step pipeline: Sparse PCA on `X` -> peel sparse estimate -> PCA on peeled data -> peel dense estimate from original `X` -> Sparse PCA again.
 
+- **`eigenvalue_gap_distinguisher.py`**: Implements a pre-deflation distinguisher for the mixed model. It estimates noise with MP-calibrated bulk median, checks MP-edge detectability, and classifies `lambda_1` vs `lambda_2` as `far` or `close_or_undetectable` using an outlier-gap z-test.
+
+- **`gated_deflation_sparse_experiment.py`**: Evaluates a gated policy: run the eigenvalue-gap distinguisher first, deflate only when the regime is classified as `far`, and then run Sparse PCA.
+
 ## Setup and Installation
 
 To run these simulations, you'll need Python 3 and the packages listed in `requirements.txt`.
@@ -130,6 +134,33 @@ python sparse_dense_sparse_pipeline_experiment.py --lam2 5 --num-trials 10
 To run without opening plots:
 ```bash
 python sparse_dense_sparse_pipeline_experiment.py --no-plot
+```
+
+### Eigenvalue-Gap Distinguisher (Pre-Deflation Gate)
+Run a validation sweep across several `(lambda_1, lambda_2)` settings:
+```bash
+python eigenvalue_gap_distinguisher.py --mode validate
+```
+
+Run a single-instance classification:
+```bash
+python eigenvalue_gap_distinguisher.py --mode single --lam1 35 --lam2 15
+```
+
+### Gated Deflation + Sparse PCA Experiment
+Run fixed-`lambda_2` sweeps comparing direct Sparse PCA, always-deflate, and gated deflation:
+```bash
+python gated_deflation_sparse_experiment.py --experiment original --lam2 5
+```
+
+Run a `lambda_2` sweep:
+```bash
+python gated_deflation_sparse_experiment.py --experiment lam2-sweep --lam2-values 2 5 10 20
+```
+
+Example using a looser edge buffer:
+```bash
+python gated_deflation_sparse_experiment.py --experiment original --p 10000 --n 200 --edge-buffer 1.0 --z-threshold 2.0
 ```
 
 #### Parameters (`deflation_sparse_experiment.py`)
